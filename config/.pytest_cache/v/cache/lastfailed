@@ -1,0 +1,6 @@
+{
+  "accounts/tests.py": true,
+  "sweets/tests/test_sweets.py::test_create_sweet": true,
+  "sweets/tests/test_sweets.py::test_list_sweets": true,
+  "sweets/tests/test_sweets.py::test_update_sweet": true
+}

@@ -1,0 +1,11 @@
+[
+  "accounts/tests/test_auth.py::test_user_can_login",
+  "accounts/tests/test_auth.py::test_user_can_register",
+  "sweets/tests/test_sweets.py::TestSweetCRUD::test_create_sweet",
+  "sweets/tests/test_sweets.py::TestSweetCRUD::test_delete_sweet_admin_only",
+  "sweets/tests/test_sweets.py::TestSweetCRUD::test_list_sweets",
+  "sweets/tests/test_sweets.py::TestSweetCRUD::test_update_sweet",
+  "sweets/tests/test_sweets.py::test_create_sweet",
+  "sweets/tests/test_sweets.py::test_list_sweets",
+  "sweets/tests/test_sweets.py::test_update_sweet"
+]

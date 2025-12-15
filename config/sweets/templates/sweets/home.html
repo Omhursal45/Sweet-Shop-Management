@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}Welcome to Sweet Shop{% endblock %}
+{% block page_subtitle %}Discover our delicious collection of sweets{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<div class="hero-section text-center mb-5 p-5 rounded-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+    <h1 class="display-4 fw-bold mb-3">🍬 Sweet Paradise 🍬</h1>
+    <p class="lead mb-4">Indulge in our premium collection of handcrafted sweets</p>
+    <a href="{% url 'sweets_list' %}" class="btn btn-light btn-lg rounded-pill px-5">
+        Explore Sweets <i class="bi bi-arrow-right ms-2"></i>
+    </a>
+</div>
+
+<!-- Featured Sweets -->
+<div class="mb-5">
+    <h2 class="fw-bold mb-4 text-center">
+        <i class="bi bi-star-fill text-warning me-2"></i>Featured Sweets
+    </h2>
+    
+    {% if featured_sweets %}
+    <div class="row g-4">
+        {% for sweet in featured_sweets %}
+        <div class="col-6 col-md-4 col-lg-3">
+            <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden sweet-card">
+                {% if sweet.image %}
+                <img src="{{ sweet.image.url }}" class="card-img-top" alt="{{ sweet.name }}" style="height: 200px; object-fit: cover;">
+                {% else %}
+                <div class="card-img-top bg-gradient d-flex align-items-center justify-content-center" style="height: 200px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                    <i class="bi bi-image text-white" style="font-size: 3rem;"></i>
+                </div>
+                {% endif %}
+                <div class="card-body d-flex flex-column">
+                    <span class="badge bg-primary mb-2">{{ sweet.category }}</span>
+                    <h5 class="card-title fw-bold">{{ sweet.name }}</h5>
+                    <p class="text-muted small mb-2">
+                        {% if sweet.description %}
+                            {{ sweet.description|truncatewords:10 }}
+                        {% else %}
+                            Delicious {{ sweet.name }} from our collection
+                        {% endif %}
+                    </p>
+                    <div class="mt-auto">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="h5 text-primary mb-0">₹{{ sweet.price }}</span>
+                            <span class="badge {% if sweet.quantity > 0 %}bg-success{% else %}bg-danger{% endif %}">
+                                {% if sweet.quantity > 0 %}
+                                    {{ sweet.quantity }} in stock
+                                {% else %}
+                                    Out of stock
+                                {% endif %}
+                            </span>
+                        </div>
+                        {% if user.is_authenticated and sweet.quantity > 0 %}
+                        <form method="post" action="{% url 'add_to_cart' sweet.id %}" class="d-inline w-100">
+                            {% csrf_token %}
+                            <input type="hidden" name="quantity" value="1">
+                            <button type="submit" class="btn btn-primary w-100 rounded-pill">
+                                <i class="bi bi-cart-plus me-1"></i> Add to Cart
+                            </button>
+                        </form>
+                        {% else %}
+                        <a href="{% url 'sweet_detail' sweet.id %}" class="btn btn-primary w-100 rounded-pill">
+                            View Details <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <i class="bi bi-inbox" style="font-size: 4rem; color: #ccc;"></i>
+        <p class="text-muted mt-3">No sweets available yet. Check back soon!</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Categories Section -->
+{% if categories %}
+<div class="mt-5">
+    <h2 class="fw-bold mb-4 text-center">Browse by Category</h2>
+    <div class="row g-3">
+        {% for category in categories %}
+        <div class="col-6 col-md-3 col-sm-6">
+            <a href="{% url 'sweets_list' %}?category={{ category }}" class="text-decoration-none">
+                <div class="card border-0 shadow-sm rounded-4 p-4 text-center category-card" style="transition: transform 0.3s;">
+                    <i class="bi bi-tag-fill text-primary" style="font-size: 2.5rem;"></i>
+                    <h5 class="mt-3 mb-0">{{ category }}</h5>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<style>
+.sweet-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.sweet-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.15) !important;
+}
+
+.category-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
+}
+</style>
+
+{% endblock %}
+

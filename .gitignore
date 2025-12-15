@@ -1,6 +1,7 @@
 # Python
 __pycache__/
 *.pyc
+.pytest_cache/
 
 # Virtual environment
 venv/
@@ -12,3 +13,4 @@ staticfiles/
 
 # Environment
 .env
+

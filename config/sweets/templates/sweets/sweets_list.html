@@ -1,0 +1,244 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}All Sweets{% endblock %}
+{% block page_subtitle %}Browse our complete collection{% endblock %}
+
+{% block content %}
+
+<!-- Search and Filter Section -->
+<div class="row mb-4 g-3">
+    <div class="col-12 col-md-6">
+        <form method="get" class="d-flex">
+            <input type="text" name="search" class="form-control me-2" placeholder="Search sweets..." value="{{ search_query }}">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-search"></i> <span class="d-none d-sm-inline">Search</span>
+            </button>
+        </form>
+    </div>
+    <div class="col-12 col-md-6 text-md-end">
+        {% if user.is_staff %}
+        <a href="{% url 'add_sweet' %}" class="btn btn-success w-100 w-md-auto">
+            <i class="bi bi-plus-circle me-1"></i> Add New Sweet
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Category Filter -->
+{% if categories %}
+<div class="mb-4">
+    <div class="btn-group flex-wrap" role="group" style="gap: 0.5rem;">
+        <a href="{% url 'sweets_list' %}" class="btn btn-outline-primary {% if not selected_category %}active{% endif %} mb-2 mb-md-0">
+            All Categories
+        </a>
+        {% for category in categories %}
+        <a href="{% url 'sweets_list' %}?category={{ category }}" 
+           class="btn btn-outline-primary {% if selected_category == category %}active{% endif %} mb-2 mb-md-0">
+            {{ category }}
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Results Count -->
+{% if sweets %}
+<div class="mb-3">
+    <p class="text-muted mb-0">
+        Showing {{ sweets.start_index }} - {{ sweets.end_index }} of {{ paginator.count }} sweets
+    </p>
+</div>
+{% endif %}
+
+<!-- Sweets Grid -->
+{% if sweets %}
+<div class="row g-4">
+    {% for sweet in sweets %}
+    <div class="col-6 col-md-4 col-lg-3">
+        <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden sweet-card">
+            {% if sweet.image %}
+            <img src="{{ sweet.image.url }}" class="card-img-top" alt="{{ sweet.name }}" style="height: 220px; object-fit: cover;">
+            {% else %}
+            <div class="card-img-top bg-gradient d-flex align-items-center justify-content-center" style="height: 220px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <i class="bi bi-image text-white" style="font-size: 3rem;"></i>
+            </div>
+            {% endif %}
+            <div class="card-body d-flex flex-column">
+                <span class="badge bg-primary mb-2">{{ sweet.category }}</span>
+                <h5 class="card-title fw-bold">{{ sweet.name }}</h5>
+                <p class="text-muted small mb-2">
+                    {% if sweet.description %}
+                        {{ sweet.description|truncatewords:12 }}
+                    {% else %}
+                        Delicious {{ sweet.name }} from our collection
+                    {% endif %}
+                </p>
+                <div class="mt-auto">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="h5 text-primary mb-0">₹{{ sweet.price }}</span>
+                        <span class="badge {% if sweet.quantity > 0 %}bg-success{% else %}bg-danger{% endif %}">
+                            {% if sweet.quantity > 0 %}
+                                {{ sweet.quantity }} left
+                            {% else %}
+                                Out of stock
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="d-grid gap-2">
+                        {% if user.is_authenticated and sweet.quantity > 0 %}
+                        <form method="post" action="{% url 'add_to_cart' sweet.id %}" class="d-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="quantity" value="1">
+                            <button type="submit" class="btn btn-primary rounded-pill w-100">
+                                <i class="bi bi-cart-plus me-1"></i> Add to Cart
+                            </button>
+                        </form>
+                        {% elif sweet.quantity == 0 %}
+                        <button class="btn btn-secondary rounded-pill w-100" disabled>
+                            <i class="bi bi-x-circle me-1"></i> Out of Stock
+                        </button>
+                        {% else %}
+                        <a href="{% url 'login' %}" class="btn btn-outline-primary rounded-pill w-100">
+                            <i class="bi bi-box-arrow-in-right me-1"></i> Login to Buy
+                        </a>
+                        {% endif %}
+                        <a href="{% url 'sweet_detail' sweet.id %}" class="btn btn-outline-secondary rounded-pill btn-sm">
+                            <i class="bi bi-eye me-1"></i> View Details
+                        </a>
+                        {% if user.is_staff %}
+                        <div class="btn-group" role="group">
+                            <a href="{% url 'update_sweet' sweet.id %}" class="btn btn-sm btn-outline-warning">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="{% url 'delete_sweet' sweet.id %}" class="btn btn-sm btn-outline-danger" 
+                               onclick="return confirm('Are you sure you want to delete {{ sweet.name }}?')">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if paginator.num_pages > 1 %}
+<nav aria-label="Page navigation" class="mt-5">
+    <ul class="pagination justify-content-center">
+        {% if sweets.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page=1{% if selected_category %}&category={{ selected_category }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}">
+                <i class="bi bi-chevron-double-left"></i>
+            </a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="?page={{ sweets.previous_page_number }}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}">
+                <i class="bi bi-chevron-left"></i>
+            </a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <span class="page-link"><i class="bi bi-chevron-double-left"></i></span>
+        </li>
+        <li class="page-item disabled">
+            <span class="page-link"><i class="bi bi-chevron-left"></i></span>
+        </li>
+        {% endif %}
+
+        {% for num in paginator.page_range %}
+            {% if sweets.number == num %}
+            <li class="page-item active">
+                <span class="page-link">{{ num }}</span>
+            </li>
+            {% elif num > sweets.number|add:'-3' and num < sweets.number|add:'3' %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ num }}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}">{{ num }}</a>
+            </li>
+            {% endif %}
+        {% endfor %}
+
+        {% if sweets.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ sweets.next_page_number }}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}">
+                <i class="bi bi-chevron-right"></i>
+            </a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="?page={{ paginator.num_pages }}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}">
+                <i class="bi bi-chevron-double-right"></i>
+            </a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <span class="page-link"><i class="bi bi-chevron-right"></i></span>
+        </li>
+        <li class="page-item disabled">
+            <span class="page-link"><i class="bi bi-chevron-double-right"></i></span>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+{% else %}
+<div class="text-center py-5">
+    <i class="bi bi-inbox" style="font-size: 4rem; color: #ccc;"></i>
+    <p class="text-muted mt-3">No sweets found. Try adjusting your search or filters.</p>
+    {% if user.is_staff %}
+    <a href="{% url 'add_sweet' %}" class="btn btn-success mt-3">
+        <i class="bi bi-plus-circle me-1"></i> Add Your First Sweet
+    </a>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- Messages -->
+{% if messages %}
+<div class="mt-4">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<style>
+.sweet-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.sweet-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.15) !important;
+}
+
+/* Responsive improvements */
+@media (max-width: 576px) {
+    .card-img-top {
+        height: 180px !important;
+    }
+    
+    .btn-group {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    
+    .btn-group .btn {
+        margin-bottom: 0.5rem;
+    }
+}
+
+/* Pagination responsive */
+.pagination {
+    flex-wrap: wrap;
+}
+</style>
+
+{% endblock %}
+

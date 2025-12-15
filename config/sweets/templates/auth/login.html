@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Login{% endblock %}
+{% block page_subtitle %}Access your Sweet Shop dashboard{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5 col-lg-4">
+        <div class="card shadow-lg border-0 rounded-4">
+            <div class="card-body p-4">
+
+                <h3 class="text-center fw-bold mb-4">
+                    <i class="bi bi-box-arrow-in-right me-1"></i> Login
+                </h3>
+                <form method="POST" action="?next={{ request.GET.next }}">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Username</label>
+                        <input type="text" name="username" class="form-control" required>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Password</label>
+                        <input type="password" name="password" class="form-control" required>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg rounded-pill">
+                            Login
+                        </button>
+                    </div>
+                </form>
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-danger mt-3 text-center">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <p class="text-center mt-4 mb-0">
+                    Don’t have an account?
+                    <a href="{% url 'register' %}" class="fw-semibold text-decoration-none">
+                        Register
+                    </a>
+                </p>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
