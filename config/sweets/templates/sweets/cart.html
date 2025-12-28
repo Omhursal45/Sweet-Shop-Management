@@ -1,144 +1,197 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block page_title %}Shopping Cart{% endblock %}
-{% block page_subtitle %}Review your items{% endblock %}
+{% block page_title %}My Basket{% endblock %}
 
 {% block content %}
-
-{% if cart_items %}
-<div class="row">
-    <div class="col-lg-8">
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-header bg-white py-3">
-                <h5 class="mb-0 fw-bold">
-                    <i class="bi bi-cart3 me-2"></i>Your Cart ({{ cart.total_items }} items)
-                </h5>
-            </div>
-            <div class="card-body p-0">
-                {% for item in cart_items %}
-                <div class="border-bottom p-4 cart-item-row">
-                    <div class="row align-items-center">
-                        <div class="col-12 col-md-3 mb-3 mb-md-0">
-                            {% if item.sweet.image %}
-                            <img src="{{ item.sweet.image.url }}" class="img-fluid rounded" alt="{{ item.sweet.name }}" style="max-height: 120px; width: 100%; object-fit: cover;">
-                            {% else %}
-                            <div class="bg-gradient rounded d-flex align-items-center justify-content-center" style="height: 120px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-                                <i class="bi bi-image text-white" style="font-size: 2.5rem;"></i>
-                            </div>
-                            {% endif %}
-                        </div>
-                        <div class="col-12 col-md-5">
-                            <h5 class="fw-bold mb-1">{{ item.sweet.name }}</h5>
-                            <p class="text-muted small mb-2">{{ item.sweet.category }}</p>
-                            <p class="text-muted small mb-0">{{ item.sweet.description|truncatewords:15 }}</p>
-                            <p class="text-primary fw-bold mb-0 mt-2">₹{{ item.sweet.price }} each</p>
-                        </div>
-                        <div class="col-12 col-md-2 text-center mb-3 mb-md-0">
-                            <form method="post" action="{% url 'update_cart_item' item.id %}" class="d-inline">
-                                {% csrf_token %}
-                                <label class="form-label small fw-semibold">Quantity</label>
-                                <div class="input-group input-group-sm">
-                                    <input type="number" name="quantity" value="{{ item.quantity }}" min="1" max="{{ item.sweet.quantity }}" class="form-control text-center" required>
-                                    <button type="submit" class="btn btn-outline-primary">
-                                        <i class="bi bi-arrow-repeat"></i>
-                                    </button>
-                                </div>
-                                <small class="text-muted">Max: {{ item.sweet.quantity }}</small>
-                            </form>
-                        </div>
-                        <div class="col-12 col-md-2 text-center text-md-end">
-                            <h5 class="text-primary fw-bold mb-2">₹{{ item.subtotal }}</h5>
-                            <form method="post" action="{% url 'remove_from_cart' item.id %}" class="d-inline">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-sm btn-outline-danger">
-                                    <i class="bi bi-trash me-1"></i>Remove
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-        
-        <div class="text-end mb-4">
-            <a href="{% url 'sweets_list' %}" class="btn btn-outline-primary">
-                <i class="bi bi-arrow-left me-1"></i>Continue Shopping
-            </a>
-        </div>
-    </div>
-    
-    <div class="col-lg-4">
-        <div class="card border-0 shadow-sm sticky-top" style="top: 20px;">
-            <div class="card-header bg-primary text-white py-3">
-                <h5 class="mb-0 fw-bold">
-                    <i class="bi bi-calculator me-2"></i>Order Summary
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="d-flex justify-content-between mb-3">
-                    <span>Subtotal ({{ cart.total_items }} items):</span>
-                    <span class="fw-bold">₹{{ cart.total_price }}</span>
-                </div>
-                <div class="d-flex justify-content-between mb-3">
-                    <span>Shipping:</span>
-                    <span class="text-success fw-bold">FREE</span>
-                </div>
-                <hr>
-                <div class="d-flex justify-content-between mb-4">
-                    <span class="h5 mb-0">Total:</span>
-                    <span class="h4 text-primary fw-bold mb-0">₹{{ cart.total_price }}</span>
-                </div>
-                <a href="{% url 'checkout' %}" class="btn btn-primary btn-lg w-100 rounded-pill">
-                    <i class="bi bi-lock-fill me-2"></i>Proceed to Checkout
-                </a>
-                <form method="post" action="{% url 'clear_cart' %}" class="mt-2">
+<div class="container py-5">
+    {% if cart_items %}
+    <div class="row g-4">
+        <div class="col-lg-8 animate-slide-right">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="fw-bold mb-0">Shopping Cart <span class="text-muted fs-6">({{ cart.total_items }} Items)</span></h4>
+                <form method="post" action="{% url 'clear_cart' %}">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-outline-danger btn-sm w-100" onclick="return confirm('Are you sure you want to clear your cart?')">
-                        <i class="bi bi-trash me-1"></i>Clear Cart
+                    <button type="submit" class="btn btn-sm btn-link text-danger text-decoration-none p-0" onclick="return confirm('Clear all items?')">
+                        <i class="bi bi-trash3 me-1"></i>Clear All
                     </button>
                 </form>
             </div>
+
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+                <div class="card-body p-0">
+                    {% for item in cart_items %}
+                    <div class="p-3 p-md-4 border-bottom cart-item-row">
+                        <div class="row align-items-center">
+                            <div class="col-4 col-md-2">
+                                <div class="ratio ratio-1x1 rounded-3 overflow-hidden bg-light border">
+                                    {% if item.sweet.image %}
+                                    <img src="{{ item.sweet.image.url }}" class="object-fit-cover" alt="{{ item.sweet.name }}">
+                                    {% else %}
+                                    <div class="d-flex align-items-center justify-content-center bg-gradient-sweet">
+                                        <i class="bi bi-stars text-white fs-4"></i>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="col-8 col-md-4">
+                                <h6 class="fw-bold mb-1 text-dark">{{ item.sweet.name }}</h6>
+                                <p class="text-muted small mb-0">{{ item.sweet.category }}</p>
+                                <p class="text-primary fw-bold d-md-none mt-1 small">₹{{ item.sweet.price }}</p>
+                            </div>
+
+                            <div class="col-7 col-md-3 mt-3 mt-md-0">
+                                <form method="post" action="{% url 'update_cart_item' item.id %}" class="qty-form">
+                                    {% csrf_token %}
+                                    <div class="input-group input-group-sm quantity-spinner mx-auto mx-md-0 shadow-sm">
+                                        <input type="number" name="quantity" value="{{ item.quantity }}" min="1" max="{{ item.sweet.quantity }}" class="form-control text-center border-0 fw-bold">
+                                        <button type="submit" class="btn btn-dark px-2" title="Update">
+                                            <i class="bi bi-check2"></i>
+                                        </button>
+                                    </div>
+                                    <div class="text-center text-md-start">
+                                        <small class="text-muted tiny-text">Max: {{ item.sweet.quantity }}</small>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <div class="col-5 col-md-3 text-end">
+                                <h6 class="fw-bold mb-0">₹{{ item.subtotal }}</h6>
+                                <form method="post" action="{% url 'remove_from_cart' item.id %}" class="mt-2">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-link text-muted p-0 small text-decoration-none hover-danger">
+                                        Remove
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <a href="{% url 'sweets_list' %}" class="btn btn-link text-decoration-none text-dark p-0">
+                <i class="bi bi-arrow-left me-2"></i>Continue Shopping
+            </a>
+        </div>
+
+        <div class="col-lg-4 animate-slide-up">
+            <div class="card border-0 shadow-sm rounded-4 p-4 sticky-summary">
+                <h5 class="fw-bold mb-4">Summary</h5>
+                
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Subtotal</span>
+                    <span class="fw-semibold">₹{{ cart.total_price }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-3">
+                    <span class="text-muted">Delivery</span>
+                    <span class="text-success fw-semibold">FREE</span>
+                </div>
+                
+                <hr class="my-4 border-dashed">
+                
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <span class="h5 fw-bold mb-0">Total</span>
+                    <span class="h4 fw-bold text-primary mb-0">₹{{ cart.total_price }}</span>
+                </div>
+
+                <a href="{% url 'checkout' %}" class="btn btn-primary btn-lg w-100 rounded-pill py-3 shadow-sm">
+                    Proceed to Checkout
+                </a>
+
+                <div class="mt-4 text-center">
+                    <div class="d-flex justify-content-center gap-3 opacity-50">
+                        <i class="bi bi-shield-check fs-4"></i>
+                        <i class="bi bi-credit-card fs-4"></i>
+                        <i class="bi bi-truck fs-4"></i>
+                    </div>
+                    <p class="tiny-text text-muted mt-2">Secure Payment & Fresh Delivery Guaranteed</p>
+                </div>
+            </div>
         </div>
     </div>
-</div>
-{% else %}
-<div class="text-center py-5">
-    <i class="bi bi-cart-x" style="font-size: 5rem; color: #ccc;"></i>
-    <h3 class="mt-4 mb-3">Your cart is empty</h3>
-    <p class="text-muted mb-4">Start adding delicious sweets to your cart!</p>
-    <a href="{% url 'sweets_list' %}" class="btn btn-primary btn-lg rounded-pill px-5">
-        <i class="bi bi-shop me-2"></i>Browse Sweets
-    </a>
-</div>
-{% endif %}
-
-<!-- Messages -->
-{% if messages %}
-<div class="mt-4">
-    {% for message in messages %}
-    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-        {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    {% else %}
+    <div class="text-center py-5 animate-slide-up">
+        <div class="empty-cart-icon mb-4 mx-auto">
+            <i class="bi bi-cart-x"></i>
+        </div>
+        <h3 class="fw-bold">Your basket is empty</h3>
+        <p class="text-muted mb-4">Looks like you haven't added any sweets yet.</p>
+        <a href="{% url 'sweets_list' %}" class="btn btn-primary btn-lg rounded-pill px-5 shadow">
+            Explore Collection
+        </a>
     </div>
-    {% endfor %}
+    {% endif %}
 </div>
-{% endif %}
 
 <style>
-.cart-item-row:hover {
-    background-color: #f8f9fa;
-    transition: background-color 0.3s;
+/* Sidebar Sticky Logic */
+.sticky-summary {
+    position: sticky;
+    top: 100px;
+    background: #fff;
 }
 
-@media (max-width: 768px) {
-    .sticky-top {
-        position: relative !important;
-        top: 0 !important;
-    }
+/* Item Rows */
+.cart-item-row {
+    transition: background 0.2s ease;
+}
+.cart-item-row:hover {
+    background-color: #fcfcfd;
+}
+
+/* Quantity Spinner */
+.quantity-spinner {
+    max-width: 100px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    overflow: hidden;
+}
+.quantity-spinner input {
+    background: #f9fafb;
+}
+
+/* Custom UI Elements */
+.bg-gradient-sweet {
+    background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+}
+
+.border-dashed {
+    border-top: 1px dashed #dee2e6;
+}
+
+.tiny-text {
+    font-size: 0.7rem;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.hover-danger:hover {
+    color: #dc3545 !important;
+}
+
+/* Empty State Styling */
+.empty-cart-icon {
+    width: 120px;
+    height: 120px;
+    background: #f3f4f6;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #d1d5db;
+    font-size: 3.5rem;
+}
+
+/* Animations */
+.animate-slide-right { animation: slideRight 0.6s ease-out; }
+.animate-slide-up { animation: slideUp 0.6s ease-out; }
+@keyframes slideRight { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+@media (max-width: 991px) {
+    .sticky-summary { position: static; }
 }
 </style>
-
 {% endblock %}
-

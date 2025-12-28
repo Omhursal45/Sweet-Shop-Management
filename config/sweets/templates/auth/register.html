@@ -1,119 +1,134 @@
 {% extends 'base.html' %}
 
-{% block page_title %}Register{% endblock %}
-{% block page_subtitle %}Create your Sweet Shop account{% endblock %}
+{% block title %}Join Sweet Paradise{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6 col-lg-5">
-        <div class="card shadow-lg border-0 rounded-4">
-            <div class="card-body p-4">
-
-                <h3 class="text-center fw-bold mb-4">
-                    <i class="bi bi-person-plus me-1"></i> Register
-                </h3>
-
-                <form id="registerForm">
-                    <!-- Username -->
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Username</label>
-                        <div class="input-group">
-                            <span class="input-group-text">
-                                <i class="bi bi-person"></i>
-                            </span>
-                            <input type="text" name="username" class="form-control"
-                                   placeholder="Choose a username" required>
-                        </div>
-                    </div>
-
-                    <!-- Email -->
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Email</label>
-                        <div class="input-group">
-                            <span class="input-group-text">
-                                <i class="bi bi-envelope"></i>
-                            </span>
-                            <input type="email" name="email" class="form-control"
-                                   placeholder="Enter your email" required>
-                        </div>
-                    </div>
-
-                    <!-- Password -->
-                    <div class="mb-4">
-                        <label class="form-label fw-semibold">Password</label>
-                        <div class="input-group">
-                            <span class="input-group-text">
-                                <i class="bi bi-lock"></i>
-                            </span>
-                            <input type="password" name="password" class="form-control"
-                                   placeholder="Create a password" required>
-                        </div>
-                    </div>
-
-                    <!-- Button -->
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-success btn-lg rounded-pill">
-                            Create Account
-                        </button>
-                    </div>
-                </form>
-
-                <p class="text-center mt-4 mb-0">
-                    Already have an account?
-                    <a href="{% url 'login' %}" class="fw-semibold text-decoration-none">
-                        Login
-                    </a>
-                </p>
-
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Toast -->
-<div class="position-fixed top-0 end-0 p-3" style="z-index: 1100">
-    <div id="registerToast" class="toast align-items-center text-bg-danger border-0">
-        <div class="d-flex">
-            <div class="toast-body" id="toastMsg"></div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto"
-                    data-bs-dismiss="toast"></button>
-        </div>
-    </div>
-</div>
-
-<script>
-document.getElementById('registerForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const formData = new FormData(e.target);
-    const data = {
-        username: formData.get('username'),
-        email: formData.get('email'),
-        password: formData.get('password')
-    };
-
-    try {
-        const response = await fetch('/api/auth/register/', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(data)
-        });
-
-        const result = await response.json();
-
-        if (response.ok) {
-            window.location.href = "{% url 'login' %}";
-        } else {
-            showToast(result.detail || "Registration failed");
-        }
-    } catch {
-        showToast("Server error. Try again later.");
+<style>
+    .auth-wrapper {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
-});
 
-function showToast(message) {
-    document.getElementById('toastMsg').innerText = message;
-    new bootstrap.Toast(document.getElementById('registerToast')).show();
-}
-</script>
+    .auth-card {
+        background: white;
+        border-radius: 30px;
+        padding: 40px;
+        width: 100%;
+        max-width: 500px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.05);
+    }
+
+    .form-control {
+        background-color: #f8f9fa;
+        border: 2px solid transparent;
+        border-radius: 15px;
+        padding: 12px 20px;
+        transition: all 0.3s;
+    }
+
+    .form-control:focus {
+        background-color: white;
+        border-color: #f5576c;
+        box-shadow: 0 0 0 4px rgba(245, 87, 108, 0.1);
+    }
+
+    .input-group-text {
+        background: transparent;
+        border: none;
+        color: #adb5bd;
+        padding-left: 20px;
+    }
+
+    .btn-register {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        border: none;
+        padding: 14px;
+        font-weight: 700;
+        border-radius: 15px;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn-register:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(245, 87, 108, 0.2);
+    }
+
+    /* Real-time validation styling */
+    .validation-msg {
+        font-size: 0.8rem;
+        margin-top: 5px;
+        display: block;
+    }
+</style>
+
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <div class="text-center mb-5">
+            <div class="d-inline-block p-3 rounded-circle bg-light mb-3">
+                <i class="bi bi-person-plus text-danger fs-1"></i>
+            </div>
+            <h2 class="fw-black">Create Account</h2>
+            <p class="text-muted">Join our sweet community today</p>
+        </div>
+
+        <form hx-post="{% url 'register' %}" 
+              hx-target="body" 
+              hx-push-url="true">
+            {% csrf_token %}
+
+            <div class="mb-3">
+                <label class="form-label small fw-bold text-uppercase">Username</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-at"></i></span>
+                    <input type="text" name="username" class="form-control" 
+                           placeholder="johndoe" required
+                           hx-get="/check-username/" 
+                           hx-trigger="keyup changed delay:500ms" 
+                           hx-target="#username-error">
+                </div>
+                <div id="username-error" class="validation-msg"></div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label small fw-bold text-uppercase">Email Address</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                    <input type="email" name="email" class="form-control" 
+                           placeholder="name@example.com" required>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label small fw-bold text-uppercase">Password</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                    <input type="password" name="password" class="form-control" 
+                           placeholder="••••••••" required>
+                </div>
+                <small class="text-muted mt-2 d-block" style="font-size: 0.75rem;">
+                    Must be at least 8 characters long.
+                </small>
+            </div>
+
+            <div class="d-grid">
+                <button type="submit" class="btn btn-register btn-lg text-white shadow-sm">
+                    Create Account
+                </button>
+            </div>
+        </form>
+
+        <p class="text-center mt-4 mb-0 text-muted">
+            Already a member? 
+            <a href="{% url 'login' %}" 
+               hx-get="{% url 'login' %}" 
+               hx-target="#content-area" 
+               hx-push-url="true"
+               class="fw-bold text-danger text-decoration-none">
+                Sign In
+            </a>
+        </p>
+    </div>
+</div>
 {% endblock %}

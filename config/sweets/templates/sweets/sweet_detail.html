@@ -2,204 +2,202 @@
 {% load static %}
 
 {% block page_title %}{{ sweet.name }}{% endblock %}
-{% block page_subtitle %}{{ sweet.category }}{% endblock %}
 
 {% block content %}
+<div class="container py-4">
+    <nav aria-label="breadcrumb" class="mb-4 animate-fade-in">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'sweets_list' %}" class="text-decoration-none text-muted">Collection</a></li>
+            <li class="breadcrumb-item active fw-bold" aria-current="page">{{ sweet.category }}</li>
+        </ol>
+    </nav>
 
-<div class="row g-4">
-    <!-- Sweet Image -->
-    <div class="col-12 col-md-5">
-        {% if sweet.image %}
-        <img src="{{ sweet.image.url }}" class="img-fluid rounded-4 shadow" alt="{{ sweet.name }}" style="max-height: 500px; width: 100%; object-fit: cover;">
-        {% else %}
-        <div class="bg-gradient d-flex align-items-center justify-content-center rounded-4 shadow" style="height: 500px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-            <i class="bi bi-image text-white" style="font-size: 5rem;"></i>
-        </div>
-        {% endif %}
-    </div>
-
-    <!-- Sweet Details -->
-    <div class="col-12 col-md-7">
-        <div class="mb-3 d-flex justify-content-between align-items-start flex-wrap gap-2">
-            <span class="badge bg-primary fs-6">{{ sweet.category }}</span>
-            {% if user.is_staff %}
-            <div>
-                <a href="{% url 'update_sweet' sweet.id %}" class="btn btn-sm btn-warning">
-                    <i class="bi bi-pencil me-1"></i> Edit
-                </a>
-                <a href="{% url 'delete_sweet' sweet.id %}" class="btn btn-sm btn-danger" 
-                   onclick="return confirm('Are you sure you want to delete {{ sweet.name }}?')">
-                    <i class="bi bi-trash me-1"></i> Delete
-                </a>
+    <div class="row g-4 align-items-start">
+        <div class="col-12 col-md-5 animate-slide-right">
+            <div class="product-gallery position-relative">
+                {% if sweet.image %}
+                <div class="main-img-container rounded-4 shadow-sm overflow-hidden">
+                    <img src="{{ sweet.image.url }}" class="img-fluid w-100" alt="{{ sweet.name }}" id="mainProductImage">
+                </div>
+                {% else %}
+                <div class="placeholder-container rounded-4 shadow-sm d-flex align-items-center justify-content-center">
+                    <i class="bi bi-stars text-white display-3 opacity-50"></i>
+                </div>
+                {% endif %}
+                
+                <div class="d-md-none floating-price">
+                    ₹{{ sweet.price }}
+                </div>
             </div>
-            {% endif %}
         </div>
 
-        <h1 class="fw-bold mb-3">{{ sweet.name }}</h1>
-        
-        <div class="mb-4">
-            <h2 class="text-primary fw-bold mb-2">₹{{ sweet.price }}</h2>
-            <span class="badge {% if sweet.quantity > 0 %}bg-success{% else %}bg-danger{% endif %} fs-6">
-                {% if sweet.quantity > 0 %}
-                    <i class="bi bi-check-circle me-1"></i>{{ sweet.quantity }} available in stock
-                {% else %}
-                    <i class="bi bi-x-circle me-1"></i>Out of stock
-                {% endif %}
-            </span>
-        </div>
-
-        {% if sweet.description %}
-        <div class="mb-4">
-            <h4 class="fw-bold mb-3">Description</h4>
-            <p class="text-muted" style="line-height: 1.8;">{{ sweet.description }}</p>
-        </div>
-        {% endif %}
-
-        <div class="mb-4">
-            <h4 class="fw-bold mb-3">Product Information</h4>
-            <table class="table table-borderless">
-                <tr>
-                    <td class="fw-semibold" style="width: 150px;">Category:</td>
-                    <td>{{ sweet.category }}</td>
-                </tr>
-                <tr>
-                    <td class="fw-semibold">Price:</td>
-                    <td>₹{{ sweet.price }}</td>
-                </tr>
-                <tr>
-                    <td class="fw-semibold">Quantity:</td>
-                    <td>{{ sweet.quantity }} units</td>
-                </tr>
-                <tr>
-                    <td class="fw-semibold">Added:</td>
-                    <td>{{ sweet.created_at|date:"F d, Y" }}</td>
-                </tr>
-            </table>
-        </div>
-
-        {% if user.is_authenticated %}
-        <div class="mb-4">
-            {% if sweet.quantity > 0 %}
-            <form method="post" action="{% url 'add_to_cart' sweet.id %}" class="d-inline">
-                {% csrf_token %}
-                <div class="row g-3 align-items-end">
-                    <div class="col-auto">
-                        <label for="quantity" class="form-label fw-semibold">Quantity:</label>
-                        <input type="number" name="quantity" id="quantity" value="1" min="1" max="{{ sweet.quantity }}" class="form-control" style="width: 100px;" required>
-                        <small class="text-muted">Max: {{ sweet.quantity }}</small>
-                    </div>
-                    <div class="col-auto">
-                        <button type="submit" class="btn btn-primary btn-lg rounded-pill px-5">
-                            <i class="bi bi-cart-plus me-2"></i>Add to Cart
-                        </button>
-                    </div>
-                </div>
-            </form>
-            {% else %}
-            <button class="btn btn-secondary btn-lg rounded-pill px-4 px-md-5" disabled>
-                <i class="bi bi-x-circle me-2"></i>Out of Stock
-            </button>
-            {% endif %}
-        </div>
-        <div class="d-grid gap-2 d-md-flex">
-            <a href="{% url 'sweets_list' %}" class="btn btn-outline-primary btn-lg rounded-pill px-4">
-                <i class="bi bi-arrow-left me-2"></i>Back to List
-            </a>
-            <a href="{% url 'view_cart' %}" class="btn btn-outline-success btn-lg rounded-pill px-4">
-                <i class="bi bi-cart3 me-2"></i>View Cart
-            </a>
-        </div>
-        {% else %}
-        <div class="alert alert-info">
-            <i class="bi bi-info-circle me-2"></i>
-            Please <a href="{% url 'login' %}">login</a> to purchase this sweet.
-        </div>
-        {% endif %}
-    </div>
-</div>
-
-<!-- Related Sweets -->
-{% if related_sweets %}
-<hr class="my-5">
-<div class="mt-5">
-    <h3 class="fw-bold mb-4">More from {{ sweet.category }}</h3>
-    <div class="row g-4">
-        {% for related in related_sweets %}
-        <div class="col-6 col-md-3">
-            <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden sweet-card">
-                {% if related.image %}
-                <img src="{{ related.image.url }}" class="card-img-top" alt="{{ related.name }}" style="height: 180px; object-fit: cover;">
-                {% else %}
-                <div class="card-img-top bg-gradient d-flex align-items-center justify-content-center" style="height: 180px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-                    <i class="bi bi-image text-white" style="font-size: 2.5rem;"></i>
-                </div>
-                {% endif %}
-                <div class="card-body d-flex flex-column">
-                    <h6 class="card-title fw-bold">{{ related.name }}</h6>
-                    <div class="mt-auto">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="h6 text-primary mb-0">₹{{ related.price }}</span>
-                            <span class="badge {% if related.quantity > 0 %}bg-success{% else %}bg-danger{% endif %}">
-                                {% if related.quantity > 0 %}{{ related.quantity }}{% else %}Out{% endif %}
-                            </span>
-                        </div>
-                        <a href="{% url 'sweet_detail' related.id %}" class="btn btn-sm btn-primary w-100 rounded-pill">
-                            View Details
+        <div class="col-12 col-md-7 animate-slide-up">
+            <div class="ps-md-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="category-label">{{ sweet.category }}</span>
+                    {% if user.is_staff %}
+                    <div class="btn-group">
+                        <a href="{% url 'update_sweet' sweet.id %}" class="btn btn-sm btn-outline-warning border-1 rounded-pill px-3 me-2">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <a href="{% url 'delete_sweet' sweet.id %}" class="btn btn-sm btn-outline-danger border-1 rounded-pill px-3" onclick="return confirm('Delete this sweet?')">
+                            <i class="bi bi-trash"></i>
                         </a>
                     </div>
+                    {% endif %}
+                </div>
+
+                <h1 class="fw-bold text-dark mb-2">{{ sweet.name }}</h1>
+                
+                <div class="d-flex align-items-center mb-4">
+                    <h2 class="text-primary fw-bold mb-0 me-3">₹{{ sweet.price }}</h2>
+                    <div class="vr me-3"></div>
+                    <span class="stock-status {% if sweet.quantity > 0 %}instock{% else %}outofstock{% endif %}">
+                        {% if sweet.quantity > 0 %}
+                            <i class="bi bi-circle-fill me-1 small"></i>{{ sweet.quantity }} in stock
+                        {% else %}
+                            <i class="bi bi-x-circle-fill me-1"></i>Sold Out
+                        {% endif %}
+                    </span>
+                </div>
+
+                <div class="glass-info-card p-3 rounded-4 mb-4">
+                    <h6 class="fw-bold mb-2 text-uppercase small text-muted">Description</h6>
+                    <p class="text-muted small lh-base mb-0">
+                        {{ sweet.description|default:"Handcrafted with premium ingredients to ensure a delightful experience in every bite." }}
+                    </p>
+                </div>
+
+                {% if user.is_authenticated %}
+                <div class="purchase-box p-3 rounded-4 border bg-white shadow-sm mb-4">
+                    {% if sweet.quantity > 0 %}
+                    <form method="post" action="{% url 'add_to_cart' sweet.id %}">
+                        {% csrf_token %}
+                        <div class="row g-2 align-items-center">
+                            <div class="col-3">
+                                <label class="tiny-label">Qty</label>
+                                <input type="number" name="quantity" value="1" min="1" max="{{ sweet.quantity }}" class="form-control border-2 rounded-3 text-center">
+                            </div>
+                            <div class="col-9">
+                                <label class="tiny-label opacity-0">Action</label>
+                                <button type="submit" class="btn btn-dark w-100 rounded-pill py-2 shadow-sm btn-cart-animate">
+                                    <i class="bi bi-bag-plus me-2"></i>Add to Cart
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    {% else %}
+                    <button class="btn btn-secondary w-100 rounded-pill py-2" disabled>Currently Unavailable</button>
+                    {% endif %}
+                </div>
+                {% else %}
+                <div class="alert alert-light border rounded-4 p-3 mb-4">
+                    <small><i class="bi bi-lock me-2"></i>Please <a href="{% url 'login' %}" class="fw-bold text-primary">Login</a> to order.</small>
+                </div>
+                {% endif %}
+
+                <div class="d-flex gap-2">
+                    <a href="{% url 'sweets_list' %}" class="btn btn-sm btn-light rounded-pill px-3 border flex-grow-1">
+                        <i class="bi bi-arrow-left me-1"></i>Back
+                    </a>
+                    <a href="{% url 'view_cart' %}" class="btn btn-sm btn-outline-success rounded-pill px-3 flex-grow-1">
+                        <i class="bi bi-cart3 me-1"></i>Cart
+                    </a>
                 </div>
             </div>
         </div>
-        {% endfor %}
     </div>
-</div>
-{% endif %}
 
-<!-- Messages -->
-{% if messages %}
-<div class="mt-4">
-    {% for message in messages %}
-    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-        {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    {% if related_sweets %}
+    <div class="mt-5 pt-4 border-top animate-slide-up">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold mb-0">More {{ sweet.category }}</h5>
+            <a href="{% url 'sweets_list' %}?category={{ sweet.category }}" class="text-primary text-decoration-none small fw-bold">View All</a>
+        </div>
+        <div class="row g-2"> {% for related in related_sweets %}
+            <div class="col-6 col-md-3 col-lg-2"> <a href="{% url 'sweet_detail' related.id %}" class="text-decoration-none">
+                    <div class="card h-100 border-0 shadow-sm rounded-3 related-card overflow-hidden">
+                        <div class="ratio ratio-1x1 overflow-hidden">
+                            {% if related.image %}
+                                <img src="{{ related.image.url }}" class="object-fit-cover transition-transform" alt="{{ related.name }}">
+                            {% else %}
+                                <div class="bg-light d-flex align-items-center justify-content-center"><i class="bi bi-image text-muted"></i></div>
+                            {% endif %}
+                        </div>
+                        <div class="card-body p-2 text-center">
+                            <p class="text-dark fw-bold mb-0 text-truncate small">{{ related.name }}</p>
+                            <span class="text-primary fw-bold tiny-text">₹{{ related.price }}</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
     </div>
-    {% endfor %}
+    {% endif %}
 </div>
-{% endif %}
 
 <style>
-.sweet-card {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+/* Refined Typography & Labels */
+.category-label {
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: #6366f1;
+    background: #f0f3ff;
+    padding: 4px 12px;
+    border-radius: 50px;
 }
 
-.sweet-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
+.tiny-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; color: #9ca3af; margin-bottom: 2px; display: block; }
+.tiny-text { font-size: 0.8rem; }
+
+/* Product Images - Compact */
+.main-img-container {
+    height: 380px; /* Reduced height */
+    background: #f8fafc;
+}
+.main-img-container img { height: 100%; object-fit: cover; transition: transform 0.4s ease; }
+.main-img-container:hover img { transform: scale(1.03); }
+
+.placeholder-container { height: 380px; background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%); }
+
+/* Stock Indicator */
+.stock-status { font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 6px; }
+.stock-status.instock { background: #ecfdf5; color: #059669; }
+.stock-status.outofstock { background: #fef2f2; color: #dc2626; }
+.stock-status i { font-size: 0.5rem; vertical-align: middle; }
+
+.glass-info-card { background: #f9fafb; border: 1px dashed #e5e7eb; }
+
+/* Related Cards - Small Style */
+.related-card { transition: all 0.3s ease; }
+.related-card:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.08) !important; }
+.related-card img { transition: transform 0.4s ease; }
+.related-card:hover img { transform: scale(1.08); }
+
+/* Animations */
+.animate-slide-right { animation: slideRight 0.6s ease-out; }
+.animate-slide-up { animation: slideUp 0.6s ease-out; }
+@keyframes slideRight { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+.floating-price {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    background: #111827;
+    color: white;
+    padding: 4px 15px;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: 700;
 }
 
-/* Responsive improvements for detail page */
 @media (max-width: 768px) {
-    .bg-gradient {
-        height: 300px !important;
-    }
-    
-    img.img-fluid {
-        max-height: 300px !important;
-    }
-    
-    h1 {
-        font-size: 1.75rem;
-    }
-    
-    h2 {
-        font-size: 1.5rem;
-    }
-    
-    .table {
-        font-size: 0.9rem;
-    }
+    .main-img-container, .placeholder-container { height: 280px; }
+    h1 { font-size: 1.75rem; }
 }
 </style>
-
 {% endblock %}
-
