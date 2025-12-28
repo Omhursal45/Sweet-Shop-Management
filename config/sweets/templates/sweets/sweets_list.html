@@ -28,7 +28,7 @@
             </a>
             {% for category in categories %}
             <a href="{% url 'sweets_list' %}?category={{ category }}" 
-               class="cat-pill {% if selected_category == category %}active{% endif %}">
+            class="cat-pill {% if selected_category == category %}active{% endif %}">
                 {{ category }}
             </a>
             {% endfor %}
