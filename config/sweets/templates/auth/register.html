@@ -54,13 +54,6 @@
         transform: translateY(-2px);
         box-shadow: 0 10px 20px rgba(245, 87, 108, 0.2);
     }
-
-    /* Real-time validation styling */
-    .validation-msg {
-        font-size: 0.8rem;
-        margin-top: 5px;
-        display: block;
-    }
 </style>
 
 <div class="auth-wrapper">
@@ -73,39 +66,63 @@
             <p class="text-muted">Join our sweet community today</p>
         </div>
 
-        <form hx-post="{% url 'register' %}" 
-              hx-target="body" 
-              hx-push-url="true">
+        <!-- 🔥 IMPORTANT: NORMAL POST FORM -->
+        <form method="POST" action="{% url 'register' %}">
             {% csrf_token %}
+
+            <!-- Messages -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} text-center">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
 
             <div class="mb-3">
                 <label class="form-label small fw-bold text-uppercase">Username</label>
                 <div class="input-group">
-                    <span class="input-group-text"><i class="bi bi-at"></i></span>
-                    <input type="text" name="username" class="form-control" 
-                           placeholder="johndoe" required
-                           hx-get="/check-username/" 
-                           hx-trigger="keyup changed delay:500ms" 
-                           hx-target="#username-error">
+                    <span class="input-group-text">
+                        <i class="bi bi-at"></i>
+                    </span>
+                    <input
+                        type="text"
+                        name="username"
+                        class="form-control"
+                        placeholder="johndoe"
+                        required
+                    >
                 </div>
-                <div id="username-error" class="validation-msg"></div>
             </div>
 
             <div class="mb-3">
                 <label class="form-label small fw-bold text-uppercase">Email Address</label>
                 <div class="input-group">
-                    <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-                    <input type="email" name="email" class="form-control" 
-                           placeholder="name@example.com" required>
+                    <span class="input-group-text">
+                        <i class="bi bi-envelope"></i>
+                    </span>
+                    <input
+                        type="email"
+                        name="email"
+                        class="form-control"
+                        placeholder="name@example.com"
+                    >
                 </div>
             </div>
 
             <div class="mb-4">
                 <label class="form-label small fw-bold text-uppercase">Password</label>
                 <div class="input-group">
-                    <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                    <input type="password" name="password" class="form-control" 
-                           placeholder="••••••••" required>
+                    <span class="input-group-text">
+                        <i class="bi bi-lock"></i>
+                    </span>
+                    <input
+                        type="password"
+                        name="password"
+                        class="form-control"
+                        placeholder="••••••••"
+                        required
+                    >
                 </div>
                 <small class="text-muted mt-2 d-block" style="font-size: 0.75rem;">
                     Must be at least 8 characters long.
@@ -120,12 +137,8 @@
         </form>
 
         <p class="text-center mt-4 mb-0 text-muted">
-            Already a member? 
-            <a href="{% url 'login' %}" 
-               hx-get="{% url 'login' %}" 
-               hx-target="#content-area" 
-               hx-push-url="true"
-               class="fw-bold text-danger text-decoration-none">
+            Already a member?
+            <a href="{% url 'login' %}" class="fw-bold text-danger text-decoration-none">
                 Sign In
             </a>
         </p>

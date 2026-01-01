@@ -41,19 +41,13 @@ def login_view(request):
 
         user = authenticate(request, username=username, password=password)
 
-        if user is not None:
+        if user:
             login(request, user)
-
-            next_url = request.GET.get("next")
-            if next_url:
-                return redirect(next_url)
-
-            return redirect("dashboard")  # URL NAME, not path
+            return redirect("dashboard")
         else:
             messages.error(request, "Invalid credentials")
 
     return render(request, "auth/login.html")
-
 
 
 def register_view(request):
@@ -61,16 +55,25 @@ def register_view(request):
         username = request.POST.get("username")
         email = request.POST.get("email")
         password = request.POST.get("password")
-        if username and password:
-            if User.objects.filter(username=username).exists():
-                messages.error(request, "Username already exists")
-            else:
-                user = User.objects.create_user(username=username, email=email, password=password)
-                messages.success(request, "Account created. Please login.")
-                return redirect("login")
-        else:
-            messages.error(request, "Username and password are required")
+
+        if not username or not password:
+            messages.error(request, "Username and password required")
+            return redirect("register")
+
+        if User.objects.filter(username=username).exists():
+            messages.error(request, "Username already exists")
+            return redirect("register")
+
+        User.objects.create_user(
+            username=username,
+            email=email,
+            password=password
+        )
+        messages.success(request, "Account created. Please login.")
+        return redirect("login")
+
     return render(request, "auth/register.html")
+
 
 
 def logout_view(request):
