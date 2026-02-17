@@ -109,44 +109,70 @@ def clear_cart(request):
     return redirect('view_cart')
 
 
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.db import transaction
+from .models import Order, OrderItem, UserAddress
+
 @login_required
 def checkout(request):
-    """Checkout page"""
     cart = get_or_create_cart(request.user)
-    cart_items = cart.items.all()
-    
-    if not cart_items:
+    cart_items = cart.items.select_related("sweet")
+
+    if not cart_items.exists():
         messages.warning(request, "Your cart is empty")
-        return redirect('view_cart')
-    
-    # Check stock availability
+        return redirect("view_cart")
+
+    # Stock check
     for item in cart_items:
         if item.quantity > item.sweet.quantity:
-            messages.error(request, f"{item.sweet.name} - Only {item.sweet.quantity} available")
-            return redirect('view_cart')
-    
-    if request.method == 'POST':
-        shipping_address = request.POST.get('shipping_address', '')
-        phone_number = request.POST.get('phone_number', '')
-        
-        if not shipping_address:
-            messages.error(request, "Shipping address is required")
-            return render(request, 'sweets/checkout.html', {
-                'cart': cart,
-                'cart_items': cart_items,
+            messages.error(
+                request,
+                f"{item.sweet.name} - Only {item.sweet.quantity} available"
+            )
+            return redirect("view_cart")
+
+    # Load default address
+    default_address = UserAddress.objects.filter(
+        user=request.user,
+        is_default=True
+    ).first()
+
+    if request.method == "POST":
+        shipping_address = request.POST.get("shipping_address", "").strip()
+        phone_number = request.POST.get("phone_number", "").strip()
+        payment_method = request.POST.get("payment_method", "COD")
+        save_address = request.POST.get("save_address")
+
+        if not shipping_address or not phone_number:
+            messages.error(request, "Address and phone number are required")
+            return render(request, "sweets/checkout.html", {
+                "cart": cart,
+                "cart_items": cart_items,
+                "default_address": default_address
             })
-        
-        # Create order
+
         with transaction.atomic():
+            # Save address if requested
+            if save_address:
+                UserAddress.objects.update_or_create(
+                    user=request.user,
+                    is_default=True,
+                    defaults={
+                        "address": shipping_address,
+                        "phone_number": phone_number
+                    }
+                )
+
             order = Order.objects.create(
                 user=request.user,
                 total_amount=cart.total_price,
                 shipping_address=shipping_address,
                 phone_number=phone_number,
-                status='pending'
+                payment_method=payment_method,
+                status="pending"
             )
-            
-            # Create order items and update stock
+
             for cart_item in cart_items:
                 OrderItem.objects.create(
                     order=order,
@@ -154,21 +180,24 @@ def checkout(request):
                     quantity=cart_item.quantity,
                     price=cart_item.sweet.price
                 )
-                
-                # Update stock
+
                 cart_item.sweet.quantity -= cart_item.quantity
-                cart_item.sweet.save()
-            
-            # Clear cart
+                cart_item.sweet.save(update_fields=["quantity"])
+
             cart.items.all().delete()
-        
-        messages.success(request, f"Order placed successfully! Order ID: {str(order.id)[:8]}")
-        return redirect('order_detail', id=order.id)
-    
-    return render(request, 'sweets/checkout.html', {
-        'cart': cart,
-        'cart_items': cart_items,
+
+        messages.success(
+            request,
+            f"Order placed successfully! Order ID: {str(order.id)[:8]}"
+        )
+        return redirect("order_detail", id=order.id)
+
+    return render(request, "sweets/checkout.html", {
+        "cart": cart,
+        "cart_items": cart_items,
+        "default_address": default_address
     })
+
 
 
 @login_required
